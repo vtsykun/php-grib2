@@ -43,7 +43,7 @@ Download Grib2 archive
 $curl = new CurlHttpClient();
 // Select 174:9400873:d=2023081906:UGRD:575 mb:3 hour fcst:
 // Use http 206 Partial Content feature to downlaod only one param
-$res = $curl->request('GET', 'https://www.ftp.ncep.noaa.gov/data/nccf/com/gfs/prod/gfs.<date>/<time>/atmos/gfs.t<time>z.pgrb2b.1p00.f003', ['headers' => ['Range' => 'bytes=9480146-9560542']]);
+$res = $curl->request('GET', 'https://www.ftp.ncep.noaa.gov/data/nccf/com/gfs/prod/gfs.<date>/<time>/atmos/gfs.t<time>z.pgrb2b.1p00.f003', ['headers' => ['Range' => 'bytes=9400873-9480145']]);
 
 file_put_contents("VGRD.p1", $res->getContent())
 ```
@@ -63,6 +63,30 @@ $reader = new Grib2Reader();
 $data = $reader->read("VGRD.p1");
 
 print_r($data);
+
+
+$matrix = $reader->read2D("VGRD.p1", lat1: 48, lat2: 57, lon1: 13, lon2: 36);
+foreach ($matrix as $i => &$vals) {
+    foreach ($vals as $j => &$val) {
+        $val = ($s = strlen($val = round($val))) >= 3 ? $val : $val . str_repeat(' ', 3-$s);
+    }
+}
+
+```
+
+Output
+
+```
+5   6   5   3   3   3   3   5   4   4   5   5   5   7   7   7   4   9   6   6   9   5   7   8  
+5   7   5   2   0   2   2   1   -0  1   2   2   4   4   5   6   6   7   6   6   5   5   6   6  
+4   6   5   3   2   2   0   0   1   2   1   1   2   3   2   2   3   1   1   1   2   2   5   4  
+5   5   5   3   3   2   2   1   3   5   6   5   4   3   3   2   -0  -1  -1  -2  -2  -3  -3  -1 
+6   6   5   3   3   3   2   4   4   5   4   4   4   4   2   1   0   -0  -0  -2  -1  -1  -3  -4 
+5   6   6   1   2   2   2   3   4   4   3   2   3   2   2   3   0   0   -0  -2  -1  -1  -2  -3 
+5   4   1   1   1   0   1   4   3   1   2   1   2   3   4   3   2   0   -1  -0  -2  -2  -2  -3 
+4   1   1   1   0   1   2   2   2   1   2   2   3   2   3   3   1   0   -0  -1  -2  -3  -4  -3 
+2   0   1   -1  -0  1   2   1   0   1   1   2   3   3   1   1   0   -0  0   0   -1  -3  -5  -4 
+-1  -1  -3  -2  -0  -1  -2  -2  -2  -1  0   2   2   2   2   1   0   0   -0  -1  -1  -3  -5  -5 
 ```
 
 License
