@@ -1,0 +1,26 @@
+{
+    "name": "okvpn/grib2-eccodes",
+    "description": "Read WMO GRIB2 files with using FFI and libeccodes",
+    "type": "library",
+    "license": "MIT",
+    "keywords": ["grib2", "eccodes", "ncep", "pgrb2b"],
+    "authors": [
+        {
+            "name": "Uladzimir Tsykun",
+            "email": "tsykun314@gmail.com"
+        }
+    ],
+    "require": {
+        "php": ">=7.4"
+    },
+    "autoload": {
+        "psr-4": {
+            "Okvpn\\Grib2\\": "src/"
+        }
+    },
+    "extra": {
+        "branch-alias": {
+            "dev-master": "1.0-dev"
+        }
+    }
+}
