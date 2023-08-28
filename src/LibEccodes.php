@@ -11,14 +11,19 @@ class LibEccodes
     public static $libPath = null;
     public static $tmpDir = null;
 
+    public static function clear(): void
+    {
+        static::$ffi = null;
+    }
+
     /**
      * @return \FFI|object
      */
     public static function create(): \FFI
     {
         if (null === static::$ffi) {
-            static::$tmpDir = self::$tmpDir ?? sys_get_temp_dir();
-            $eccodesDir = self::$tmpDir . '/eccodes-tmp';
+            static::$tmpDir = static::$tmpDir ?? sys_get_temp_dir();
+            $eccodesDir = static::$tmpDir . '/eccodes-tmp';
 
             static::$ffi ??= \FFI::cdef(file_get_contents(__DIR__ . '/grib2_api.h'), static::$libPath ?? __DIR__ . '/../libeccodes/libeccodes_x86.so');
 

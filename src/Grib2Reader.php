@@ -9,9 +9,9 @@ use FFI\CData;
 
 class Grib2Reader
 {
-    public function read(string $filename): array
+    public function read(string $filename, int $index = 1): array
     {
-        $values = $this->doRead($filename, $size);
+        $values = $this->doRead($filename, $size, $index);
 
         $result = [];
         for ($i = 0; $i < $size; $i++) {
@@ -29,7 +29,7 @@ class Grib2Reader
      * latitudeOfLastGridPointInDegrees = -90;
      * longitudeOfLastGridPointInDegrees = 359;
      */
-    public function read2D(string $filename, float $lat1 = 90.0, float $lat2 = -90.0, float $lon1 = 0, float $lon2 = 360.0, float $step = 1.0): array
+    public function read2D(string $filename, float $lat1 = 90.0, float $lat2 = -90.0, float $lon1 = 0, float $lon2 = 360.0, float $step = 1.0, int $index = 1): array
     {
         $epsilon = 0.000001;
         $step = 1/$step;
@@ -47,7 +47,7 @@ class Grib2Reader
             throw new \LogicException("Step $step division of floating point remainder (modulo) for the latitude/longitude $l must be equals 0");
         }
 
-        $values = $this->doRead($filename, $size);
+        $values = $this->doRead($filename, $size, $index);
         if (($reqSize = $Ni*$Nj) !== $size) {
             throw new \LogicException("Grib size is not match. Read $size items from file, but you pass step $step and grid $Ni x $Nj size ($reqSize items total)");
         }
@@ -78,7 +78,7 @@ class Grib2Reader
         return $matrix;
     }
 
-    protected function doRead(string $filename, int &$size = null): CData|\ArrayAccess|array
+    protected function doRead(string $filename, int &$size = null, int $index = 1): CData|\ArrayAccess|array
     {
         $ffi = LibEccodes::create();
 
@@ -88,19 +88,24 @@ class Grib2Reader
         }
 
         $context = $ffi->grib_context_get_default();
-        $error = FFI::new("int");
-        $valuesSize = FFI::new("size_t");
+        $error = $ffi->new("int");
+        $valuesSize = $ffi->new("size_t");
 
         $h = $ffi->grib_handle_new_from_file($context, $file, FFI::addr($error));
+        while (--$index > 0) {
+            $h = $ffi->grib_handle_new_from_file($context, $file, FFI::addr($error));
+        }
+
         $ffi->codes_get_size($h, 'values', FFI::addr($valuesSize));
         $size = $valuesSize->cdata;
 
-        $values = FFI::new("double[$size]");
+        $values = $ffi->new("double[$size]");
         $ffi->codes_get_double_array($h, 'values', $values, FFI::addr($valuesSize));
 
         $ffi->codes_handle_delete($h);
         $ffi->fclose($file);
-        $ffi->grib_context_delete($context);
+
+        //$ffi->grib_context_delete($context);
 
         return $values;
     }
